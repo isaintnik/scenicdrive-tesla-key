@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Keep the OAuth bridge out of search indexes; it is a machine hop, not a page. -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Scenic Drive — returning to the app…</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      background: #0b1f3a; color: #fff; text-align: center; padding: 24px;
+    }
+    .card { max-width: 22rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 .5rem; }
+    p { color: #c7d2e0; line-height: 1.5; margin: .5rem 0; }
+    a.btn {
+      display: inline-block; margin-top: 1rem; padding: .7rem 1.4rem;
+      background: #2f6df6; color: #fff; border-radius: 10px;
+      text-decoration: none; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Returning to Scenic Drive…</h1>
+    <p>Finishing your Tesla sign-in. If the app doesn’t reopen automatically, tap below.</p>
+    <a class="btn" id="return" href="scenicdrive://auth/tesla/callback">Return to Scenic Drive</a>
+  </div>
+  <script>
+    // OAuth bridge. Tesla can only redirect to an https redirect_uri, but the app
+    // captures its sign-in result through ASWebAuthenticationSession, which matches
+    // on the custom scheme "scenicdrive". So this page bounces the https redirect
+    // Tesla just delivered into scenicdrive://, forwarding the query string VERBATIM
+    // — it carries either ?code=...&state=... (success) or ?error=... (the owner
+    // declined). The app's TeslaOAuthCallback parses it and CSRF-checks `state`.
+    //
+    // Privacy: the authorization code is a secret. This page logs nothing, loads no
+    // third-party script or analytics, and stores nothing. The code lives only in
+    // the URL and is handed straight back to the app.
+    (function () {
+      var target = "scenicdrive://auth/tesla/callback" + window.location.search;
+      document.getElementById("return").setAttribute("href", target);
+      // replace(), not assign(): leaves no history entry, so the back button can't
+      // replay the bounce after the app has consumed the code.
+      window.location.replace(target);
+    })();
+  </script>
+</body>
+</html>
